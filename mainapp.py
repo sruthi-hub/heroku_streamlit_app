@@ -17,8 +17,8 @@ from numexpr import evaluate as ev
 from tqdm import tqdm
 
 st.set_option('deprecation.showfileUploaderEncoding', False)
-st.title("Sarcopenia Network Entropy Calculator")
-st.markdown("This application is a streamlit Network Entropy Calculator that takes in two folders containing the edge list and node list separately and returns a spatial entropy value.") 
+st.title("Network Entropy Calculator")
+st.markdown("This application is a streamlit Network Entropy Calculator that takes in two folders containing the edge list and node list separately and returns a spatial entropy value. The edgelist and nodelist can be generated from any omic-based data. Edgelist is an adjacency list specifying protein-protein interactions, and nodelist specifies node weights, based on expression/abundance of the protein.") 
 
 def giulia_config_spatial_entropy(edgelist,nodelist):
     
