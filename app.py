@@ -16,9 +16,12 @@ import csv
 from numexpr import evaluate as ev
 from tqdm import tqdm
 
-st.set_option('deprecation.showfileUploaderEncoding', False)
-st.title("Sarcopenia Network Entropy Calculator")
-st.markdown("This application is a streamlit Network Entropy Calculator that takes in two folders containing the edge list and node list separately and returns a spatial entropy value.") 
+#st.set_option('deprecation.showfileUploaderEncoding', False)
+st.title("Spatial Network Entropy Calculator")
+st.markdown("This application is a streamlit based Network Entropy Calculator that takes in two files \
+    containing the edge list and node list separately and returns a spatial network entropy value. \
+        Nodelist should have two columns : 'Ensembl_id' and 'Expression value'; Edgelist should have two columns : 'Source' and 'Target'.\
+            Example files and documentation is in GitHub: https://github.com/sruthi-hub/heroku_streamlit_app/tree/main ") 
 
 def giulia_config_spatial_entropy(edgelist,nodelist):
     
@@ -33,7 +36,7 @@ def giulia_config_spatial_entropy(edgelist,nodelist):
     nodes = list(g.nodes())
     nodes.sort()
 
-    PP = np.array(nx.to_numpy_matrix(g,nodelist=nodes))
+    PP = nx.to_numpy_array(g,nodelist=nodes)
 
     n = len(nodes)
     
@@ -45,7 +48,7 @@ def giulia_config_spatial_entropy(edgelist,nodelist):
     z = connectivity/(math.sqrt(avg_conn*N))
     old_z = z
     
-    loops =5 #loops = 10000 #original loops value
+    loops =5 #loops = 10000 # original loops value
     precision = 1
 
     for idx in tqdm(range(loops)):
@@ -70,7 +73,7 @@ def giulia_config_spatial_entropy(edgelist,nodelist):
     # print "number of loops ", idx+1
     #stop = time.time()
 
-    print("config entropy done once!!!")
+    print("config entropy done!")
     
     #start = time.time()
     
@@ -86,9 +89,9 @@ def giulia_config_spatial_entropy(edgelist,nodelist):
 
     #ens_id_expr_df = pd.read_csv(nodelist,names=['ens_id','expr_val'])
     ens_id_expr_df =nodelist
-    ens_id_expr_df = ens_id_expr_df.set_index('ens_id')
+    ens_id_expr_df = ens_id_expr_df.set_index('ensembl_id')
     
-    ens_id_expr_map = ens_id_expr_df.to_dict()['expr_val']
+    ens_id_expr_map = ens_id_expr_df.to_dict()['expression_value']
     #st.write(edgelist)
 
     for row in tqdm(range(n)): # first tqdm
@@ -102,10 +105,8 @@ def giulia_config_spatial_entropy(edgelist,nodelist):
 #             st.write(y)
             distance[row][col] = math.fabs(x-y)
             
-
             #except KeyError:
                 #distance[row][col] = 0
-                
                 
 
     Nbin = int(math.sqrt(n)+1)
@@ -144,7 +145,7 @@ def giulia_config_spatial_entropy(edgelist,nodelist):
     old_z = z
     old_w = w
 
-    loops = 5  # CHANGE to 10000 again
+    loops = 10000  # CHANGE to 10000 again (sample 5)
         
     precision = 1E-5
     #precision = 1E-3 # CHANGED NOW!
@@ -161,8 +162,6 @@ def giulia_config_spatial_entropy(edgelist,nodelist):
         UD = ev("U/D")
 
         del D,U,UT
-        
-
 
         for i in range(N):  UD[i,i]=0.
 
@@ -173,7 +172,7 @@ def giulia_config_spatial_entropy(edgelist,nodelist):
 
         B2 = np.array([np.sum(np.where(b==i,D2,0.)) for i in range(len(w))])/2.
 
-        print("And calculating B2 AND D2 done!!!!! inside for loop out of 5")
+        #print(f"Out of 10000, {idx} done")
 
         w = np.where( (BC!=0) & (B2!=0),BC/B2,0)
         rz= ev("abs(1.-z/old_z)")
@@ -189,7 +188,7 @@ def giulia_config_spatial_entropy(edgelist,nodelist):
         old_z = z
         old_w = w
         
-    print("JUST OUT OF THE BIG FORR LOOP...!")
+    print("JUST OUT OF THE BIG FOR LOOP!")
 
     bigW = w.take(b)
     for i in range(N):  bigW[i,i]=0.
@@ -198,26 +197,27 @@ def giulia_config_spatial_entropy(edgelist,nodelist):
     P = z2 / ( z2 + 1)
     Q=1.-P
     
-    print("And calculations done!!!!!")
+    print("And calculations done!")
     S = -1*(np.sum(np.log(P**P) + np.log(Q**Q) ))/2.
 #    S = -1*(np.sum((P*np.log(P)) + (Q*np.log(Q) )))/2.
-    print("Done S  ....!!!!!")
+    print("Done Spatial entropy estimation!")
     stop = time.time()
 
     output = dict()
     output['num_nodes'] = n
     output['num_edges'] = len(g.edges())
-    output['giulia_config_entropy']=CS
-    output['giulia_spatial_entropy'] = S
-    output['entropy_subtracted_baseline']= S-CS
+    #output['giulia_config_entropy']=CS
+    output['spatial_network_entropy'] = S
+    #output['entropy_subtracted_baseline']= S-CS
     output['runtime'] = stop-start
-    output['nodelist'] = nodelist
-    output['edgelist'] = edgelist
+    #output['nodelist'] = nodelist
+    #output['edgelist'] = edgelist
 
     return output
    
 #creating a new csv file to write computed spatial entropy values and giving headers
-fieldnames = ['nodelist','edgelist','num_nodes','num_edges', 'giulia_spatial_entropy','giulia_config_entropy','entropy_subtracted_baseline','runtime']
+#fieldnames = ['nodelist','edgelist','num_nodes','num_edges', 'giulia_spatial_entropy','giulia_config_entropy','entropy_subtracted_baseline','runtime']
+
 
 def get_table_download_link(df):
     
@@ -232,24 +232,26 @@ def get_table_download_link(df):
 #'''Streamlit portion'''
 uploaded_nodes = st.file_uploader("Upload your nodelist", type="CSV")
 if uploaded_nodes is not None:
-    nodelist = pd.read_csv(uploaded_nodes)
-    nodelist.columns=['ens_id','expr_val']
+    nodelist = pd.read_csv(uploaded_nodes, header=None)
+    nodelist.columns=['ensembl_id','expression_value']
 
 uploaded_edges = st.file_uploader("Upload your edgelist", type="CSV")
 if uploaded_edges is not None:
-    edgelist = pd.read_csv(uploaded_edges)
+    edgelist = pd.read_csv(uploaded_edges, header=None)
     edgelist.columns=['source','target']
 
 
 #creating a new csv file to write computed spatial entropy values and giving headers
-fieldnames = ['nodelist','edgelist','num_nodes','num_edges', 'giulia_spatial_entropy','giulia_config_entropy','entropy_subtracted_baseline','runtime']
+#fieldnames = ['nodelist','edgelist','num_nodes','num_edges', 'giulia_spatial_entropy','giulia_config_entropy','entropy_subtracted_baseline','runtime']
+fieldnames = ['num_nodes','num_edges', 'spatial_network_entropy','runtime']
 
 df=pd.DataFrame(columns=fieldnames)
 
 if st.button('Generate Spatial Entropy'):
     myoutput=giulia_config_spatial_entropy(edgelist,nodelist)
     newdf = pd.DataFrame([myoutput])
-    df=df.append(newdf)
+    #df=df.append(newdf)
+    df = pd.concat([df, newdf], ignore_index=True)
     st.dataframe(df)
     st.markdown(get_table_download_link(df), unsafe_allow_html=True)
     #get_table_download_link()
