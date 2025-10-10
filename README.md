@@ -2,7 +2,7 @@
 
 https://network-entropy-calculator.streamlit.app/
 
-This application is a streamlit-based Network Entropy Calculator that takes in two files containing the edge list and node list separately and returns a spatial network entropy value. 
+This application is a streamlit-based Network Entropy Calculator that takes in two files containing the nodelist and edgelist separately, and returns a spatial network entropy value. 
 
 Nodelist should have two columns: 'Ensembl_id' and 'Expression value'; 
 Edgelist should have two columns: 'Source' and 'Target'. 
