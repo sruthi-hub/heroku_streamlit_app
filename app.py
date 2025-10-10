@@ -19,9 +19,9 @@ from tqdm import tqdm
 #st.set_option('deprecation.showfileUploaderEncoding', False)
 st.title("Spatial Network Entropy Calculator")
 st.markdown("This application is a streamlit based Network Entropy Calculator that takes in two files \
-    containing the edge list and node list separately and returns a spatial network entropy value. \
-        Nodelist should have two columns : 'Ensembl_id' and 'Expression value'; Edgelist should have two columns : 'Source' and 'Target'.\
-            Example files and documentation is in GitHub: https://github.com/sruthi-hub/heroku_streamlit_app/tree/main ") 
+    - nodelist and egdelist separately, and returns a spatial network entropy value. \
+        Nodelist should have two columns: 'Ensembl_id' and 'Expression value'; Edgelist should have two columns: 'Source' and 'Target'.\
+            Example files and documentation are in GitHub: https://github.com/sruthi-hub/heroku_streamlit_app/tree/main ") 
 
 def giulia_config_spatial_entropy(edgelist,nodelist):
     
